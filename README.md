@@ -1,16 +1,20 @@
-# grocery_list_app
+# Grocery Genius
 
-A new Flutter project.
+Grocery Genius is a Flutter-based grocery list app that helps users manage their shopping lists and compare unit prices for smart, cost-effective shopping. The app uses Firebase for phone authentication and Cloud Firestore for real-time data storage, ensuring that your list persists across sessions.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Phone Authentication**  
+  Securely log in using your mobile number via Firebase Phone Auth.
+  
+- **Grocery List Management**  
+  Add, update, and delete grocery items. Mark items as purchased with a simple checkbox.
 
-A few resources to get you started if this is your first Flutter project:
+- **Price Comparison**  
+  Compare unit prices across different brands/types to find the best deals.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Real-Time Sync**  
+  Your grocery list is stored in Cloud Firestore under your user ID and updates in real time.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Dark and Light Theme UI**  
+  Enjoy a sleek and modern dark and light interface based on your preference.
