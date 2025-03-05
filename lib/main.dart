@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
+import 'dart:io' show Platform;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GroceryGuru',
-      themeMode:
-          ThemeMode.system, // Automatically switches based on system settings
+      themeMode: Platform.isAndroid ? ThemeMode.dark : ThemeMode.system,
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: Colors.grey[800],
