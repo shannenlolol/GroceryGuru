@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
-
+  
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -21,10 +22,31 @@ class _LoginPageState extends State<LoginPage> {
   String? _verificationId;
   String fullPhoneNumber = ''; // Stores the full phone number
 
+  int _startCountdown = 60;
+  Timer? _timer;
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() {
+      _startCountdown = 60;
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      if (_startCountdown == 0) {
+        timer.cancel();
+        setState(() {}); // Refresh UI to show Resend OTP
+      } else {
+        setState(() {
+          _startCountdown--;
+        });
+      }
+    });
+  }
+
   Future<void> _sendCode() async {
     setState(() {
       fullPhoneNumber =
           '${_countryCodeController.text.trim()}${_phoneNumberController.text.trim()}';
+      _isLoading = true;
     });
     try {
       await _authService.verifyPhoneNumber(
@@ -33,6 +55,7 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _verificationId = verificationId;
           });
+          _startTimer();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Verification code sent.')),
           );
@@ -80,64 +103,81 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _resendCode() async {
+    // Simply call _sendCode again
+    await _sendCode();
+  }
+
+  // Reset the OTP state (back to phone input)
+  void _reset() {
+    _timer?.cancel();
+    setState(() {
+      _verificationId = null;
+      _smsCodeController.clear();
+      _startCountdown = 60;
+    });
+  }
+
+  @override
+  void dispose() {
+    _countryCodeController.dispose();
+    _phoneNumberController.dispose();
+    _smsCodeController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height / 3), // 1/3 screen height
+        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height / 3),
         child: AppBar(
           backgroundColor: theme.colorScheme.primary,
           flexibleSpace: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.end, // Moves everything to the bottom
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                    bottom:
-                        100), // Adjust this value to lower everything further
+                padding: const EdgeInsets.only(bottom: 100),
                 child: Column(
                   children: [
                     // Logo and title row
                     Row(
-                      mainAxisSize: MainAxisSize.min, // Keeps it compact
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
                           theme.brightness == Brightness.dark
-                              ? 'assets/GroceryGuru_light.png' // Dark mode icon
-                              : 'assets/GroceryGuru_dark.png', // Light mode icon
-                          height: 50, // Adjust size as needed
+                              ? 'assets/GroceryGuru_light.png'
+                              : 'assets/GroceryGuru_dark.png',
+                          height: 50,
                           width: 50,
                         ),
-                        const SizedBox(
-                            width: 12), // Space between icon and text
+                        const SizedBox(width: 12),
                         Text(
                           'Grocery Guru',
                           style: TextStyle(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.black // Dark mode text color
-                                    : Colors.white, // Light mode text color
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.black
+                                : Colors.white,
                             fontFamily: 'RobotoSerif',
                             fontWeight: FontWeight.bold,
-                            fontSize: 30, // Adjust text size
+                            fontSize: 30,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8), // Space between title and slogan
-                    // Slogan
+                    const SizedBox(height: 8),
                     Text(
                       'Your Personal Grocery Assistant.',
                       style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black // Dark mode text color
-                            : Colors.white, // Light mode text color
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.white,
                         fontFamily: 'RobotoSerif',
-                        fontSize: 16, // Adjust text size
+                        fontSize: 16,
                         fontWeight: FontWeight.w300,
                       ),
                     ),
@@ -146,201 +186,208 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ],
           ),
+          // Show a back button when in OTP mode.
+          leading: _verificationId != null
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  color: theme.brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.white,
+                  onPressed: _reset,
+                )
+              : null,
         ),
       ),
+      backgroundColor: Colors.black,
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
             : Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.start, // Moves everything higher
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start, // Left-aligns welcome text
-                  children: [
-                    const SizedBox(
-                        height:
-                            40), // Adjust this value to move welcome text higher
-                    if (_verificationId == null) ...[
-                      // Welcome text section (Left-aligned)
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome!',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18, // Adjust text size
-                              ),
-                            ),
-                            SizedBox(height: 12), // Space between welcome texts
-                            Text(
-                              'Enter your phone number to proceed.',
-                              style: TextStyle(
-                                fontSize: 14, // Adjust text size
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 36), // Space before input fields
-
-                      // Input fields & Button section (Centered)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center, // Ensures centering
-                              children: [
-                                SizedBox(
-                                  width: 80,
-                                  child: TextField(
-                                    controller: _countryCodeController,
-                                    keyboardType: TextInputType.phone,
-                                    textAlign: TextAlign.center,
-                                    decoration: InputDecoration(
-                                      labelText: 'Code',
-                                      labelStyle: TextStyle(
-                                          color:
-                                              theme.textTheme.bodyLarge?.color),
-                                      filled: true,
-                                      fillColor: theme.cardColor,
-                                      border: const OutlineInputBorder(),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: theme.colorScheme.secondary),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: theme.colorScheme.primary),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _phoneNumberController,
-                                    keyboardType: TextInputType.phone,
-                                    decoration: InputDecoration(
-                                      labelText: 'Phone Number',
-                                      labelStyle: TextStyle(
-                                          color:
-                                              theme.textTheme.bodyLarge?.color),
-                                      filled: true,
-                                      fillColor: theme.cardColor,
-                                      border: const OutlineInputBorder(),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: theme.colorScheme.secondary),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: theme.colorScheme.primary),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 36),
-
-                            // Full-width Continue button
-                            SizedBox(
-                              width: double.infinity, // Makes button full-width
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12), // Keeps height fixed
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onPressed: _sendCode,
-                                child: const Text('Continue'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ] else ...[
-                      // OTP instruction text (Left-aligned & Higher)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 8, top: 8), // Moves text higher & aligns
-                          child: Text(
-                            'Please enter the OTP sent to $fullPhoneNumber.', // Dynamically insert phone number
-                            style: const TextStyle(
-                              fontSize: 14, // Adjust text size
-                              // fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 36), // Space before input field
-
-                      Center(
-                        child: Column(
-                          children: [
-                            // OTP Input Field
-                            TextField(
-                              controller: _smsCodeController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'One-Time Password',
-                                labelStyle: TextStyle(
-                                    color: theme.textTheme.bodyLarge?.color),
-                                filled: true,
-                                fillColor: theme.cardColor,
-                                border: const OutlineInputBorder(),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: theme.colorScheme.secondary),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: theme.colorScheme.primary),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 36), // Space before button
-
-                            // Full-width Verify button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onPressed: _verifyCode,
-                                child: const Text('Verify Code'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                child: _verificationId == null
+                    ? _buildPhoneInput(theme)
+                    : _buildOTPInput(theme),
               ),
       ),
+    );
+  }
+
+  Widget _buildPhoneInput(ThemeData theme) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 40),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Enter your phone number to proceed.',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: TextField(
+                      controller: _countryCodeController,
+                      keyboardType: TextInputType.phone,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        labelText: 'Code',
+                        labelStyle: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color),
+                        filled: true,
+                        fillColor: theme.cardColor,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: theme.colorScheme.secondary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: theme.colorScheme.primary),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneNumberController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        labelStyle: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color),
+                        filled: true,
+                        fillColor: theme.cardColor,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: theme.colorScheme.secondary),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: theme.colorScheme.primary),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 36),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _sendCode,
+                  child: const Text('Continue'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOTPInput(ThemeData theme) {
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8, top: 8),
+            child: Text(
+              'Please enter the OTP sent to $fullPhoneNumber.',
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ),
+        const SizedBox(height: 36),
+        Center(
+          child: Column(
+            children: [
+              TextField(
+                controller: _smsCodeController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'One-Time Password',
+                  labelStyle: TextStyle(
+                      color: theme.textTheme.bodyLarge?.color),
+                  filled: true,
+                  fillColor: theme.cardColor,
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: theme.colorScheme.secondary),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: theme.colorScheme.primary),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 36),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _verifyCode,
+                  child: const Text('Verify Code'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _startCountdown > 0
+                  ? Text(
+                      'Resend OTP in $_startCountdown seconds',
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 14),
+                    )
+                  : TextButton(
+                      onPressed: _resendCode,
+                      child: const Text(
+                        'Resend OTP',
+                        style: TextStyle(
+                            color: Colors.white70, fontSize: 16),
+                      ),
+                    ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
