@@ -5,7 +5,7 @@ import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
-  
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(MediaQuery.of(context).size.height / 3),
@@ -159,12 +159,13 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           'Grocery Guru',
                           style: TextStyle(
-                            color: theme.brightness == Brightness.dark
-                                ? Colors.black
-                                : Colors.white,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black // Dark mode text color
+                                    : Colors.white, // Light mode text color
                             fontFamily: 'RobotoSerif',
                             fontWeight: FontWeight.bold,
-                            fontSize: 30,
+                            fontSize: 30, // Adjust text size
                           ),
                         ),
                       ],
@@ -173,11 +174,11 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       'Your Personal Grocery Assistant.',
                       style: TextStyle(
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black // Dark mode text color
+                            : Colors.white, // Light mode text color
                         fontFamily: 'RobotoSerif',
-                        fontSize: 16,
+                        fontSize: 16, // Adjust text size
                         fontWeight: FontWeight.w300,
                       ),
                     ),
@@ -191,14 +192,13 @@ class _LoginPageState extends State<LoginPage> {
               ? IconButton(
                   icon: const Icon(Icons.arrow_back),
                   color: theme.brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white,
+                      ? Colors.black
+                      : Colors.white,
                   onPressed: _reset,
                 )
               : null,
         ),
       ),
-      backgroundColor: Colors.black,
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
@@ -255,16 +255,18 @@ class _LoginPageState extends State<LoginPage> {
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
                         labelText: 'Code',
-                        labelStyle: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color),
+                        labelStyle:
+                            TextStyle(color: theme.textTheme.bodyLarge?.color),
                         filled: true,
                         fillColor: theme.cardColor,
                         border: const OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: theme.colorScheme.secondary),
+                          borderSide:
+                              BorderSide(color: theme.colorScheme.secondary),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: theme.colorScheme.primary),
+                          borderSide:
+                              BorderSide(color: theme.colorScheme.primary),
                         ),
                       ),
                     ),
@@ -276,16 +278,18 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
-                        labelStyle: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color),
+                        labelStyle:
+                            TextStyle(color: theme.textTheme.bodyLarge?.color),
                         filled: true,
                         fillColor: theme.cardColor,
                         border: const OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: theme.colorScheme.secondary),
+                          borderSide:
+                              BorderSide(color: theme.colorScheme.secondary),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: theme.colorScheme.primary),
+                          borderSide:
+                              BorderSide(color: theme.colorScheme.primary),
                         ),
                       ),
                     ),
@@ -338,18 +342,16 @@ class _LoginPageState extends State<LoginPage> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'One-Time Password',
-                  labelStyle: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color),
+                  labelStyle:
+                      TextStyle(color: theme.textTheme.bodyLarge?.color),
                   filled: true,
                   fillColor: theme.cardColor,
                   border: const OutlineInputBorder(),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: theme.colorScheme.secondary),
+                    borderSide: BorderSide(color: theme.colorScheme.secondary),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: theme.colorScheme.primary),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
                   ),
                 ),
               ),
@@ -373,15 +375,14 @@ class _LoginPageState extends State<LoginPage> {
               _startCountdown > 0
                   ? Text(
                       'Resend OTP in $_startCountdown seconds',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 14),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 14),
                     )
                   : TextButton(
                       onPressed: _resendCode,
                       child: const Text(
                         'Resend OTP',
-                        style: TextStyle(
-                            color: Colors.white70, fontSize: 16),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ),
             ],

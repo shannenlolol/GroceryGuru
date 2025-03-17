@@ -17,8 +17,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'GroceryGuru',
-      themeMode: Platform.isAndroid ? ThemeMode.dark : ThemeMode.system,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: Colors.grey[800],
