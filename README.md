@@ -2,6 +2,8 @@
 
 Grocery Genius is a Flutter-based grocery list app that helps users manage their shopping lists and compare unit prices for smart, cost-effective shopping. The app uses Firebase for phone authentication and Cloud Firestore for real-time data storage, ensuring that your list persists across sessions.
 
+<video src=""></video>
+
 ## Features
 
 - **Phone Authentication**  
